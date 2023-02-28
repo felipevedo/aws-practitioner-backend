@@ -1,0 +1,23 @@
+{
+  "name": "aws-practitioner-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipevedo/aws-practitioner-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/felipevedo/aws-practitioner-backend/issues"
+  },
+  "homepage": "https://github.com/felipevedo/aws-practitioner-backend#readme",
+  "dependencies": {
+    "serverless": "^3.28.0"
+  }
+}
