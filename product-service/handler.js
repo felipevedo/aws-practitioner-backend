@@ -1,39 +1,61 @@
 'use strict';
 
-const { products } = require('./mock-products.js');
+const { scanProducts, queryProduct, putProduct, scanStock, queryStock, putStock } = require('./db');
+const { mergeProductWithStock, splitProductWithStock } = require('./utils');
 
-module.exports.getProductsList = async (event) => {
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-    },
-    body: JSON.stringify(
-      products,
-      null,
-      2
-    ),
-  };
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+const commonHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Credentials': true,
 };
 
-module.exports.getProductsById = async (event) => {
-  const { productId } = event.pathParameters;
-  const foundProduct = products.find(p => p.id === productId) || {};
+const getProductsList = async () => {
+  const products = await scanProducts();
+  const stock = await scanStock();
+
+  const productsWithStock = products.map((product) => {
+    const productStock = stock.find(s => s.product_id === product.id);
+
+    return mergeProductWithStock(product, productStock)
+  })
 
   return {
     statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-    },
-    body: JSON.stringify(
-      foundProduct,
-      null,
-      2
-    ),
+    headers: commonHeaders,
+    body: JSON.stringify(productsWithStock),
   };
 };
+
+const getProductsById = async (event) => {
+  const productId = parseInt(event.pathParameters.productId);
+
+  const [foundProduct] = await queryProduct(productId);
+  const [foundStock] = await queryStock(productId);
+
+  const productWithStock = mergeProductWithStock(foundProduct, foundStock);
+
+  return {
+    statusCode: 200,
+    headers: commonHeaders,
+    body: JSON.stringify(productWithStock),
+  };
+};
+
+const createProduct = async (event) => {
+  const productWithStock = JSON.parse(event.body);
+  productWithStock.id = new Date().getTime();
+
+  const { product, stock } = splitProductWithStock(productWithStock);
+
+  await putProduct(product);
+  await putStock(stock);
+
+  return {
+    statusCode: 200,
+    headers: commonHeaders,
+    body: JSON.stringify({message: 'Product created successfully'}),
+  };
+}
+
+module.exports = {
+  getProductsList, getProductsById, createProduct
+}
