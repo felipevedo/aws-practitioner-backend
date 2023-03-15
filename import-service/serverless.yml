@@ -25,7 +25,14 @@ provider:
   runtime: nodejs12.x
   stage: dev
   region: us-east-1
-  #import-service-store
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "s3:ListBucket"
+      Resource: "arn:aws:s3:::import-service-store/*"
+    - Effect: "Allow"
+      Action: "s3:*"
+      Resource: "arn:aws:s3:::import-service-store/*"
 
 # you can add statements to the Lambda function's IAM Role here
 #  iam:
