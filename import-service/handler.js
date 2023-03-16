@@ -1,11 +1,10 @@
 'use strict';
-
+const { processFile } = require('./utils');
 const AWS = require('aws-sdk');
 AWS.config.update({ accessKeyId: process.env.ACCESS_ID, secretAccessKey: process.env.SECRET });
 
 const s3 = new AWS.S3({ region: 'us-east-1' });
 const BUCKET = 'import-service-store';
-
 
 module.exports.importProductsFile = async (event) => {
   if (!event.queryStringParameters.name) {
@@ -51,10 +50,10 @@ module.exports.importProductsFile = async (event) => {
   }
 };
 
-module.exports.importFileParser = (event) => {
+module.exports.importFileParser = async (event) => {
   const fileKey = event.Records[0].s3.object.key || '';
 
-  console.log('fileKey:',fileKey);
+  console.log('fileKey:', fileKey);
 
   const params = {
     Bucket: BUCKET,
@@ -63,18 +62,13 @@ module.exports.importFileParser = (event) => {
 
   const s3Stream = s3.getObject(params).createReadStream();
 
-  s3Stream
-    .on('data', (data) => { console.log({ data, type: typeof data }); })
-    .on('error', (error) => { console.log({ error }); })
-    .on('end', () => { 
-      return {
-        statusCode: 200,
-        message: 'FROM WITHIN: the file has been parsed'
-      }
-     })
+  try {
+    const response = await processFile(s3Stream);
+  
+    return response;
+  } catch (error) {
+    console.log({ error });
 
-  return {
-    statusCode: 200,
-    message: 'the file has been parsed'
+    return error;
   }
 }
