@@ -19,6 +19,7 @@ service: product-service
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 frameworkVersion: '3'
+useDotenv: true
 
 provider:
   name: aws
@@ -70,6 +71,13 @@ functions:
       - http:
           path: products/{productId}
           method: get
+          cors: true
+  createProduct:
+    handler: handler.createProduct	
+    events:
+      - http:
+          path: products
+          method: post
           cors: true
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
