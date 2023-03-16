@@ -72,6 +72,15 @@ functions:
           path: import
           method: get
           cors: true
+  importFileParser:
+    handler: handler.importFileParser
+    events:
+      - s3:
+          bucket: import-service-store
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

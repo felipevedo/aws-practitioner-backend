@@ -50,3 +50,31 @@ module.exports.importProductsFile = async (event) => {
     }
   }
 };
+
+module.exports.importFileParser = (event) => {
+  const fileKey = event.Records[0].s3.object.key || '';
+
+  console.log('fileKey:',fileKey);
+
+  const params = {
+    Bucket: BUCKET,
+    Key: fileKey
+  }
+
+  const s3Stream = s3.getObject(params).createReadStream();
+
+  s3Stream
+    .on('data', (data) => { console.log({ data, type: typeof data }); })
+    .on('error', (error) => { console.log({ error }); })
+    .on('end', () => { 
+      return {
+        statusCode: 200,
+        message: 'FROM WITHIN: the file has been parsed'
+      }
+     })
+
+  return {
+    statusCode: 200,
+    message: 'the file has been parsed'
+  }
+}
