@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: product-service
+service: import-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -19,13 +19,20 @@ service: product-service
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 frameworkVersion: '3'
-useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: dev
   region: us-east-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "s3:ListBucket"
+      Resource: "arn:aws:s3:::import-service-store/*"
+    - Effect: "Allow"
+      Action: "s3:*"
+      Resource: "arn:aws:s3:::import-service-store/*"
 
 # you can add statements to the Lambda function's IAM Role here
 #  iam:
@@ -58,27 +65,23 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  getProductsList:
-    handler: handler.getProductsList	
+  importProductsFile:
+    handler: handler.importProductsFile
     events:
       - http:
-          path: products
+          path: import
           method: get
           cors: true
-  getProductsById:
-    handler: handler.getProductsById	
+  importFileParser:
+    handler: handler.importFileParser
     events:
-      - http:
-          path: products/{productId}
-          method: get
-          cors: true
-  createProduct:
-    handler: handler.createProduct	
-    events:
-      - http:
-          path: products
-          method: post
-          cors: true
+      - s3:
+          bucket: import-service-store
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
