@@ -1,9 +1,10 @@
 'use strict';
 const { processFile } = require('./utils');
 const AWS = require('aws-sdk');
-AWS.config.update({ accessKeyId: process.env.ACCESS_ID, secretAccessKey: process.env.SECRET });
+AWS.config.update({ accessKeyId: process.env.ACCESS_ID, secretAccessKey: process.env.SECRET, region: 'us-east-1' });
 
-const s3 = new AWS.S3({ region: 'us-east-1' });
+const s3 = new AWS.S3();
+
 const BUCKET = 'import-service-store';
 
 module.exports.importProductsFile = async (event) => {
