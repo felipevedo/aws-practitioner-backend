@@ -20,7 +20,7 @@ provider:
       Resource: "arn:aws:s3:::import-service-store/*"
     - Effect: "Allow"
       Action: "sqs:*"
-      Resource: "arn:aws:sqs:us-east-1:637998571991:catalog-items-queue"
+      Resource: "arn:aws:sqs:${aws:region}:${aws:accountId}:catalog-items-queue"
 
 functions:
   importProductsFile:
@@ -30,6 +30,12 @@ functions:
           path: import
           method: get
           cors: true
+          authorizer:
+            name: authorization-service-${sls:stage}-basicAuthorizer
+            arn: arn:aws:lambda:${aws:region}:${aws:accountId}:function:authorization-service-${sls:stage}-basicAuthorizer
+            type: request
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Authorization
   importFileParser:
     handler: handler.importFileParser
     events:
@@ -39,3 +45,28 @@ functions:
           rules:
             - prefix: uploaded/
           existing: true
+
+resources:
+  Resources:
+    GatewayResponse401:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
+        ResponseType: UNAUTHORIZED
+        RestApiId: xiql988moj
+        StatusCode: '401'
+    GatewayResponse403:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
+        ResponseType: DEFAULT_4XX
+        RestApiId: xiql988moj
+        StatusCode: '403'
