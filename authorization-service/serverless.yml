@@ -1,0 +1,16 @@
+
+service: authorization-service
+
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  environment:
+    felipevedo: ${env:felipevedo}
+
+
+functions:
+  basicAuthorizer:
+    handler: handler.basicAuthorizer
